@@ -3,60 +3,6 @@ import Stock from '../models/Stock.js';
 
 const initialStocks = [
   {
-    symbol: 'AAPL',
-    companyName: 'Apple Inc.',
-    sector: 'Technology',
-    price: 215.40,
-    change: 5.10,
-    changePercent: 2.43,
-    volume: 5432000,
-  },
-  {
-    symbol: 'NVDA',
-    companyName: 'NVIDIA Corporation',
-    sector: 'Technology',
-    price: 130.50,
-    change: 5.20,
-    changePercent: 4.15,
-    volume: 8215000,
-  },
-  {
-    symbol: 'TSLA',
-    companyName: 'Tesla Inc.',
-    sector: 'Automobile',
-    price: 248.30,
-    change: -3.40,
-    changePercent: -1.35,
-    volume: 6120000,
-  },
-  {
-    symbol: 'MSFT',
-    companyName: 'Microsoft Corporation',
-    sector: 'Technology',
-    price: 442.80,
-    change: 6.30,
-    changePercent: 1.44,
-    volume: 4190000,
-  },
-  {
-    symbol: 'GOOGL',
-    companyName: 'Alphabet Inc.',
-    sector: 'Technology',
-    price: 182.10,
-    change: 2.15,
-    changePercent: 1.19,
-    volume: 3890000,
-  },
-  {
-    symbol: 'AMZN',
-    companyName: 'Amazon.com Inc.',
-    sector: 'Consumer',
-    price: 195.20,
-    change: 3.80,
-    changePercent: 1.98,
-    volume: 4500000,
-  },
-  {
     symbol: 'RELIANCE.NS',
     companyName: 'Reliance Industries Ltd.',
     sector: 'Energy',
@@ -75,6 +21,15 @@ const initialStocks = [
     volume: 1800000,
   },
   {
+    symbol: 'HDFCBANK.NS',
+    companyName: 'HDFC Bank Limited',
+    sector: 'Financial Services',
+    price: 1640.00,
+    change: 15.50,
+    changePercent: 0.95,
+    volume: 5400000,
+  },
+  {
     symbol: 'INFY.NS',
     companyName: 'Infosys Limited',
     sector: 'Technology',
@@ -82,6 +37,15 @@ const initialStocks = [
     change: -12.00,
     changePercent: -0.67,
     volume: 3100000,
+  },
+  {
+    symbol: 'ICICIBANK.NS',
+    companyName: 'ICICI Bank Limited',
+    sector: 'Financial Services',
+    price: 1180.00,
+    change: 18.00,
+    changePercent: 1.55,
+    volume: 4100000,
   },
   {
     symbol: 'TATAMOTORS.NS',
@@ -92,13 +56,47 @@ const initialStocks = [
     changePercent: 1.92,
     volume: 4200000,
   },
+  {
+    symbol: 'SBIN.NS',
+    companyName: 'State Bank of India',
+    sector: 'Financial Services',
+    price: 840.00,
+    change: 10.20,
+    changePercent: 1.23,
+    volume: 6500000,
+  },
+  {
+    symbol: 'BHARTIARTL.NS',
+    companyName: 'Bharti Airtel Limited',
+    sector: 'Telecommunication',
+    price: 1450.00,
+    change: 22.00,
+    changePercent: 1.54,
+    volume: 2900000,
+  },
+  {
+    symbol: 'ITC.NS',
+    companyName: 'ITC Limited',
+    sector: 'Consumer Goods',
+    price: 485.00,
+    change: 5.50,
+    changePercent: 1.15,
+    volume: 5800000,
+  },
+  {
+    symbol: 'ZOMATO.NS',
+    companyName: 'Zomato Limited',
+    sector: 'Consumer Services',
+    price: 245.00,
+    change: -4.50,
+    changePercent: -1.80,
+    volume: 8900000,
+  },
 ];
 
-// Helper to generate sample historical chart points for demo/offline resilience
 const generateSampleHistoricalData = (basePrice) => {
   const points = [];
   const now = new Date();
-  // Generate 30 days of data
   let price = basePrice * 0.9;
   for (let i = 30; i >= 0; i--) {
     const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
@@ -116,17 +114,21 @@ const connectDB = async () => {
     console.log(`✅ MongoDB Connected successfully: ${conn.connection.host}`);
     console.log(`Explore database '${conn.connection.name}' in MongoDB Compass at: ${mongoURI}`);
 
-    // Auto-seed initial stocks if database has none
-    const stockCount = await Stock.countDocuments();
-    if (stockCount === 0) {
-      console.log('🌱 Seeding initial stock market data into MongoDB...');
-      const stocksWithHistory = initialStocks.map((stock) => ({
-        ...stock,
-        historicalData: generateSampleHistoricalData(stock.price),
-      }));
-      await Stock.insertMany(stocksWithHistory);
-      console.log('✅ Initial stock data seeded successfully into stocks collection!');
+    // Ensure Indian stocks are seeded/upserted into MongoDB (without wiping existing user data)
+    console.log('🌱 Ensuring Indian stock market data is present in MongoDB...');
+    for (const stock of initialStocks) {
+      await Stock.findOneAndUpdate(
+        { symbol: stock.symbol },
+        {
+          $setOnInsert: {
+            ...stock,
+            historicalData: generateSampleHistoricalData(stock.price),
+          },
+        },
+        { upsert: true, new: true }
+      );
     }
+    console.log('✅ Indian stock data verified/seeded successfully into stocks collection!');
   } catch (error) {
     console.error(`❌ Error connecting to MongoDB: ${error.message}`);
     console.error('Please ensure MongoDB server is running locally (or set MONGODB_URI in .env).');

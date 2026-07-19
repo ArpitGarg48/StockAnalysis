@@ -24,7 +24,7 @@ const generateFallbackChartData = (basePrice, range) => {
   return points;
 };
 
-// @desc    Get all stocks (with search & sector filter)
+// @desc    Get all stocks (with search & sector filter) & refresh live market quotes
 // @route   GET /api/stocks/all
 export const getAllStocks = async (req, res) => {
   try {
@@ -42,7 +42,26 @@ export const getAllStocks = async (req, res) => {
       query.sector = sector;
     }
 
-    const stocks = await Stock.find(query).sort({ symbol: 1 });
+    let stocks = await Stock.find(query).sort({ symbol: 1 });
+
+    // Refresh live quotes via yahoo-finance2 when dashboard loads for real-time accuracy
+    await Promise.all(
+      stocks.map(async (stock) => {
+        try {
+          const quote = await yahooFinance.quote(stock.symbol);
+          if (quote && quote.regularMarketPrice) {
+            stock.price = Number(quote.regularMarketPrice.toFixed(2));
+            stock.change = Number((quote.regularMarketChange || 0).toFixed(2));
+            stock.changePercent = Number((quote.regularMarketChangePercent || 0).toFixed(2));
+            if (quote.regularMarketVolume) stock.volume = quote.regularMarketVolume;
+            await stock.save();
+          }
+        } catch (err) {
+          // Keep stored MongoDB quote if Yahoo API temporarily rate limits or disconnects
+        }
+      })
+    );
+
     res.json(stocks);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -53,22 +72,36 @@ export const getAllStocks = async (req, res) => {
 // @route   GET /api/stocks/quote/:symbol
 export const getStockQuote = async (req, res) => {
   try {
-    const symbol = req.params.symbol.toUpperCase();
+    let symbol = req.params.symbol.toUpperCase();
     let stock = await Stock.findOne({ symbol });
 
     try {
-      // Fetch live quote from Yahoo Finance API
-      const quote = await yahooFinance.quote(symbol);
+      // Fetch live quote from Yahoo Finance API (if direct fails and no suffix, try .NS for Indian stocks)
+      let quote;
+      try {
+        quote = await yahooFinance.quote(symbol);
+      } catch (e) {
+        if (!symbol.includes('.')) {
+          try {
+            quote = await yahooFinance.quote(`${symbol}.NS`);
+            if (quote && quote.regularMarketPrice) {
+              symbol = `${symbol}.NS`;
+              stock = await Stock.findOne({ symbol });
+            }
+          } catch (e2) {}
+        }
+      }
+
       if (quote && quote.regularMarketPrice) {
-        const updatedPrice = quote.regularMarketPrice;
-        const updatedChange = quote.regularMarketChange || 0;
-        const updatedChangePercent = quote.regularMarketChangePercent || 0;
+        const updatedPrice = Number(quote.regularMarketPrice.toFixed(2));
+        const updatedChange = Number((quote.regularMarketChange || 0).toFixed(2));
+        const updatedChangePercent = Number((quote.regularMarketChangePercent || 0).toFixed(2));
         const updatedVolume = quote.regularMarketVolume || 1000000;
 
         if (stock) {
           stock.price = updatedPrice;
-          stock.change = Number(updatedChange.toFixed(2));
-          stock.changePercent = Number(updatedChangePercent.toFixed(2));
+          stock.change = updatedChange;
+          stock.changePercent = updatedChangePercent;
           stock.volume = updatedVolume;
           await stock.save();
         } else {
@@ -77,8 +110,8 @@ export const getStockQuote = async (req, res) => {
             companyName: quote.longName || quote.shortName || symbol,
             sector: 'General',
             price: updatedPrice,
-            change: Number(updatedChange.toFixed(2)),
-            changePercent: Number(updatedChangePercent.toFixed(2)),
+            change: updatedChange,
+            changePercent: updatedChangePercent,
             volume: updatedVolume,
             historicalData: generateFallbackChartData(updatedPrice, '1mo'),
           });

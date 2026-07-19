@@ -2,6 +2,7 @@ import Portfolio from '../models/Portfolio.js';
 import Transaction from '../models/Transaction.js';
 import Stock from '../models/Stock.js';
 import User from '../models/User.js';
+import yahooFinance from 'yahoo-finance2';
 
 // @desc    Get user holdings with live profit/loss tracking & summary stats
 // @route   GET /api/portfolio
@@ -14,6 +15,37 @@ export const getPortfolio = async (req, res) => {
       stockMap[s.symbol] = s;
     });
 
+    // Fetch live market prices in parallel for exact real-time Profit & Loss
+    const livePrices = {};
+    const uniqueSymbols = [...new Set(holdings.map((h) => h.symbol))];
+    await Promise.all(
+      uniqueSymbols.map(async (sym) => {
+        try {
+          let quote = await yahooFinance.quote(sym);
+          if (!quote && !sym.includes('.')) {
+            quote = await yahooFinance.quote(`${sym}.NS`);
+          }
+          if (quote && quote.regularMarketPrice) {
+            livePrices[sym] = Number(quote.regularMarketPrice.toFixed(2));
+            // Keep MongoDB updated with latest live quote
+            await Stock.findOneAndUpdate(
+              { symbol: sym },
+              {
+                $set: {
+                  price: livePrices[sym],
+                  change: Number((quote.regularMarketChange || 0).toFixed(2)),
+                  changePercent: Number((quote.regularMarketChangePercent || 0).toFixed(2)),
+                },
+              },
+              { upsert: true }
+            );
+          }
+        } catch (err) {
+          // Fallback to stockMap if Yahoo API fails
+        }
+      })
+    );
+
     let totalInvested = 0;
     let totalCurrentValue = 0;
     const sectorMap = {};
@@ -24,7 +56,7 @@ export const getPortfolio = async (req, res) => {
         sector: holding.sector || 'Technology',
       };
 
-      const currentPrice = liveStock.price;
+      const currentPrice = livePrices[holding.symbol] || liveStock.price || holding.averageBuyPrice;
       const investedValue = holding.shares * holding.averageBuyPrice;
       const currentValue = holding.shares * currentPrice;
       const profitLoss = currentValue - investedValue;

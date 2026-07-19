@@ -1,8 +1,6 @@
 import Watchlist from '../models/Watchlist.js';
 import Stock from '../models/Stock.js';
 
-// @desc    Get user watchlist with live stock quotes
-// @route   GET /api/watchlist
 export const getWatchlist = async (req, res) => {
   try {
     const watchlists = await Watchlist.find({ userId: req.user._id });
@@ -39,8 +37,6 @@ export const getWatchlist = async (req, res) => {
   }
 };
 
-// @desc    Add stock to watchlist
-// @route   POST /api/watchlist
 export const addToWatchlist = async (req, res) => {
   try {
     const { symbol, companyName } = req.body;
@@ -65,8 +61,6 @@ export const addToWatchlist = async (req, res) => {
   }
 };
 
-// @desc    Remove stock from watchlist
-// @route   DELETE /api/watchlist/:symbol
 export const removeFromWatchlist = async (req, res) => {
   try {
     const symbol = req.params.symbol.toUpperCase();
