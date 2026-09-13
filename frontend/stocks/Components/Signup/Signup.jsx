@@ -70,7 +70,6 @@ export default function SignUp() {
 
   return (
     <div className="min-h-screen flex bg-slate-950">
-      {/* Left Section */}
       <div className="hidden lg:flex lg:w-1/2 flex-col justify-center px-16 bg-gradient-to-br from-emerald-600 via-teal-700 to-cyan-900 text-white">
         <div>
           <h1 className="text-6xl font-black leading-tight">
@@ -89,7 +88,6 @@ export default function SignUp() {
         </div>
       </div>
 
-      {/* Right Section */}
       <div className="flex w-full lg:w-1/2 items-center justify-center px-6 py-12">
         <div className="w-full max-w-md">
           <div className="mb-8">
@@ -113,9 +111,7 @@ export default function SignUp() {
             </div>
           )}
 
-          {/* Form */}
           <form onSubmit={handleValidateAndSubmit} className="space-y-5">
-            {/* Name */}
             <div>
               <label className="mb-2 block text-sm font-medium text-gray-300">
                 Full Name
@@ -131,7 +127,6 @@ export default function SignUp() {
               {error.name && <p className="mt-1 text-sm text-red-400">{error.name}</p>}
             </div>
 
-            {/* Email */}
             <div>
               <label className="mb-2 block text-sm font-medium text-gray-300">
                 Email Address
@@ -147,7 +142,6 @@ export default function SignUp() {
               {error.email && <p className="mt-1 text-sm text-red-400">{error.email}</p>}
             </div>
 
-            {/* Password */}
             <div>
               <label className="mb-2 block text-sm font-medium text-gray-300">
                 Password
@@ -163,7 +157,6 @@ export default function SignUp() {
               {error.password && <p className="mt-1 text-sm text-red-400">{error.password}</p>}
             </div>
 
-            {/* Confirm Password */}
             <div>
               <label className="mb-2 block text-sm font-medium text-gray-300">
                 Confirm Password
@@ -180,7 +173,6 @@ export default function SignUp() {
               {error.wrongpass && <p className="mt-1 text-sm text-red-400">{error.wrongpass}</p>}
             </div>
 
-            {/* Button */}
             <button
               type="submit"
               disabled={loading}
@@ -189,14 +181,12 @@ export default function SignUp() {
               {loading ? "Creating Account..." : "Create Account"}
             </button>
 
-            {/* Divider */}
             <div className="flex items-center gap-4">
               <div className="h-px flex-1 bg-gray-700"></div>
               <span className="text-sm text-gray-500">OR</span>
               <div className="h-px flex-1 bg-gray-700"></div>
             </div>
 
-            {/* Login Link */}
             <div className="text-center pt-2">
               <Link to="/" className="text-pink-300 hover:text-pink-200 font-medium">
                 Already have an account? Sign In

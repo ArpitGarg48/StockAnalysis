@@ -15,6 +15,6 @@
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.9.5",
-    "yahoo-finance2": "^2.13.3"
+    "yahoo-finance2": "^4.0.2"
   }
 }

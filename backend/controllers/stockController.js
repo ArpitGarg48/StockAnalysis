@@ -1,5 +1,6 @@
 import Stock from '../models/Stock.js';
-import yahooFinance from 'yahoo-finance2';
+import yahooFinanceModule from 'yahoo-finance2';
+const yahooFinance = typeof yahooFinanceModule === 'function' ? new yahooFinanceModule() : (yahooFinanceModule.default || yahooFinanceModule);
 
 // Helper to generate realistic historical data points for chart rendering
 const generateFallbackChartData = (basePrice, range) => {
@@ -88,7 +89,7 @@ export const getStockQuote = async (req, res) => {
               symbol = `${symbol}.NS`;
               stock = await Stock.findOne({ symbol });
             }
-          } catch (e2) {}
+          } catch (e2) { }
         }
       }
 

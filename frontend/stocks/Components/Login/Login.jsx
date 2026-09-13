@@ -48,7 +48,6 @@ export default function Login() {
 
     return (
         <div className="min-h-screen flex bg-slate-950 w-auto">
-            {/* Left Section */}
             <div className="hidden lg:flex lg:w-1/2 flex-col justify-center px-16 bg-gradient-to-br from-emerald-600 via-teal-700 to-cyan-900 text-white">
                 <div>
                     <h1 className="text-6xl font-black leading-tight">
@@ -67,7 +66,6 @@ export default function Login() {
                 </div>
             </div>
 
-            {/* Right Section */}
             <div className="flex w-full lg:w-1/2 items-center justify-center px-6 py-12">
                 <div className="w-full max-w-md">
                     <div className="mb-8">
@@ -91,7 +89,6 @@ export default function Login() {
                         </div>
                     )}
 
-                    {/* Form */}
                     <form onSubmit={handleValidateAndSubmit} className="space-y-6">
                         <div>
                             <label className="mb-2 block text-sm font-medium text-gray-300">
