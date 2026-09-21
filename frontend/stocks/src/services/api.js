@@ -1,4 +1,4 @@
-const BASE_URL = 'http://localhost:5000/api';
+const BASE_URL = 'https://stockanalysis-o28m.onrender.com/api';
 
 const getHeaders = (customHeaders = {}) => {
   const token = localStorage.getItem('token');
