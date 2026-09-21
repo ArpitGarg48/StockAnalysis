@@ -6,6 +6,8 @@ import Panel from '../Components/Pages/Panel'
 import Stocks from '../Components/Pages/Stocks'
 import Dashboard from '../Components/Pages/Dashboard'
 import Portfolio from '../Components/Pages/Portfolio'
+import AIChatBox from '../Components/AIChatBox/AIChatBox'
+
 
 const App = () => {
   return (
@@ -24,7 +26,7 @@ const App = () => {
           </Route>
         </Routes>
       </BrowserRouter>
-
+      <AIChatBox />
     </>
   )
 }
